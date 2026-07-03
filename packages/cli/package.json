@@ -1,0 +1,32 @@
+{
+  "name": "@hl-agents/cli",
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "hl-agents": "./dist/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@hl-agents/core": "workspace:*",
+    "@hl-agents/validate": "workspace:*",
+    "@hl-agents/review-adapters": "workspace:*",
+    "@hl-agents/fix-adapters": "workspace:*",
+    "@hl-agents/committer": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "tsup": "^8.3.0",
+    "vitest": "^2.1.0"
+  }
+}
