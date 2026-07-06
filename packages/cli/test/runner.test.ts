@@ -19,7 +19,7 @@ describe('runFromConfig (dry-run integration)', () => {
     cfg.review = {
       adapter: 'command',
       command: 'true',
-      parser: 'noop',
+      parser: 'eslint',
     };
     const result = await runFromConfig(cfg);
     // `true` produces no stdout → parser returns [] → clean pass on iteration 1

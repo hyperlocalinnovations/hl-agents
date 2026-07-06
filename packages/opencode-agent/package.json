@@ -16,11 +16,7 @@
   },
   "dependencies": {
     "@hl-agents/core": "workspace:*",
-    "@hl-agents/cli": "workspace:*",
-    "@hl-agents/validate": "workspace:*",
-    "@hl-agents/review-adapters": "workspace:*",
-    "@hl-agents/fix-adapters": "workspace:*",
-    "@hl-agents/committer": "workspace:*"
+    "@hl-agents/opencode-sdk": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.6.0",

@@ -15,7 +15,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@hl-agents/core": "workspace:*"
+    "@hl-agents/core": "workspace:*",
+    "@hl-agents/opencode-sdk": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.6.0",

@@ -7,8 +7,8 @@
     "rules": { "minSeverity": "medium", "ignore": ["**/*.md", "dist/**"] },
     "llmVerify": { "adapter": "off" }
   },
-  "plan": { "adapter": "opencode-agent" },
-  "apply": { "adapter": "opencode-agent" },
+  "plan": { "adapter": "opencode-agent", "agent": "build", "auto": true },
+  "apply": { "adapter": "opencode-agent", "agent": "build", "auto": true },
   "commit": {
     "adapter": "git",
     "granularity": "per-iteration",

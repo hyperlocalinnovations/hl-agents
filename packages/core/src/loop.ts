@@ -47,8 +47,10 @@ export async function runLoop(opts: LoopOptions): Promise<LoopResult> {
 
   for (let i = 1; i <= opts.maxIterations; i++) {
     log.info?.(`review iteration ${i}/${opts.maxIterations}`);
+    log.info?.('review running...');
     const review = await opts.reviewAdapter.run();
     totalFindings += review.findings.length;
+    log.info?.(`review found ${review.findings.length} finding(s)`);
 
     if (review.findings.length === 0) {
       cleanPass = true;
@@ -60,6 +62,7 @@ export async function runLoop(opts: LoopOptions): Promise<LoopResult> {
     const outcome = await opts.validator.validate(review.findings);
     totalValid += outcome.valid.length;
     totalDropped += outcome.dropped.length;
+    log.info?.(`${outcome.valid.length} valid, ${outcome.dropped.length} dropped`);
     if (outcome.dropped.length > 0) {
       log.debug?.(`dropped ${outcome.dropped.length} findings as invalid`);
     }
@@ -78,6 +81,7 @@ export async function runLoop(opts: LoopOptions): Promise<LoopResult> {
     }
 
     if (opts.dryRun) {
+      log.info?.('planning fixes (dry-run)...');
       const plans = await opts.fixPlanner.plan(outcome.valid);
       stoppedReason = 'dry-run';
       log.info?.('dry-run: planning only, no apply/commit');
@@ -119,16 +123,19 @@ export async function runLoop(opts: LoopOptions): Promise<LoopResult> {
       break;
     }
 
+    log.info?.(`planning fixes for ${actionable.length} finding(s)...`);
     const plans = await opts.fixPlanner.plan(actionable);
     const allChanged: string[] = [];
 
     for (const plan of plans) {
+      log.info?.(`applying fix: ${plan.description}`);
       const applied = await opts.fixApplier.apply(plan);
       allChanged.push(...applied.filesChanged);
 
       if (opts.commitGranularity === 'per-finding') {
         const c = await opts.committer.commit([plan], applied.filesChanged);
         totalCommits++;
+        log.info?.(`committed: ${c.sha}`);
         iterations.push({
           iteration: i,
           findings: review.findings,
@@ -141,8 +148,10 @@ export async function runLoop(opts: LoopOptions): Promise<LoopResult> {
     }
 
     if (opts.commitGranularity === 'per-iteration') {
+      log.info?.(`committing ${allChanged.length} file(s)...`);
       const c = await opts.committer.commit(plans, allChanged);
       totalCommits++;
+      log.info?.(`committed: ${c.sha}`);
       iterations.push({
         iteration: i,
         findings: review.findings,
@@ -152,9 +161,10 @@ export async function runLoop(opts: LoopOptions): Promise<LoopResult> {
         commit: c,
       });
     } else if (opts.commitGranularity === 'per-batch' && iterations[iterations.length - 1]?.iteration !== i) {
-      // per-batch defers commit grouping to the committer across plans; commit once
+      log.info?.(`committing ${allChanged.length} file(s)...`);
       const c = await opts.committer.commit(plans, allChanged);
       totalCommits++;
+      log.info?.(`committed: ${c.sha}`);
       iterations.push({
         iteration: i,
         findings: review.findings,
