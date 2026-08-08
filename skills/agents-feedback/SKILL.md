@@ -1,11 +1,11 @@
 ---
 name: agents-feedback
-description: "Turn feedback about harness or agent behavior into self-iterating, improving project instructions. Use when the user gives feedback about how the agent (or an automation harness like review-loop) behaved — e.g. 'stop doing X', 'always run Y first', 'it ignored the linter', 'the loop should commit differently', or any 'whenever you <do>...' rule they want enforced in AGENTS.md. Also use when the user asks to improve, update, or self-iterate AGENTS.md from observed behavior."
+description: "Turns feedback about harness or agent behavior into self-iterating AGENTS.md rules. Use when the user gives feedback ('stop doing X', 'always run Y first') or asks to improve AGENTS.md."
 ---
 
 # agents-feedback
 
-Collect feedback about harness/agent behavior and fold it into the project's `AGENTS.md` so the agent (and automation harnesses like `review-loop`) improve over time. Every change is recorded in `AGENTS.history.md` so rules never silently contradict or duplicate earlier ones.
+Collect feedback about harness/agent behavior and fold it into the project's `AGENTS.md` so the agent (and automation harnesses like `review-loop`) improve over time. Every change is recorded in `AGENTS.history.md`, which helps avoid contradicting or duplicating earlier rules.
 
 ## State files
 
@@ -35,8 +35,8 @@ Determine:
 
 Search existing rules in `AGENTS.md` and past entries in `AGENTS.history.md`:
 
-- **Already learned**: the same trigger + behavior already exists. Report "already learned in <date> entry" and stop — do not re-add.
-- **Conflict**: a rule with the same trigger but a different behavior exists. Flag the contradiction to the user with the `question` tool and ask which behavior wins. Do not edit until they decide.
+- **Already learned**: the same trigger + behavior already exists. Report "already learned in the <YYYY-MM-DD> — <summary> entry" and stop — do not re-add.
+- **Conflict**: a rule with the same trigger but a different behavior exists. Flag the contradiction to the user with the `question` tool and ask which behavior wins. Do not edit until they decide. If the `question` tool is unavailable or denied, present the conflict options as plain chat text and ask the user to reply with their choice.
 - Otherwise, proceed.
 
 ### 4. Edit `AGENTS.md`
@@ -53,7 +53,7 @@ Insert the new rule as a bullet under the matching heading. Create the heading i
 Add one entry per iteration, at the end of the file:
 
 ```markdown
-## 2026-08-08 — <one-line summary>
+## <YYYY-MM-DD> — <one-line summary>
 
 - **Observed**: <what happened / what the user said>
 - **Rule**: <the imperative added or changed>
@@ -65,4 +65,4 @@ Create `AGENTS.history.md` with an `# AGENTS History` heading if it does not exi
 
 ### 6. Show the diff
 
-Run `git diff AGENTS.md AGENTS.history.md` (or `git diff -- AGENTS.md AGENTS.history.md`) so the user can review and revert. If the files are untracked, use `git add -N` first so the diff renders. Summarize what changed in one or two lines.
+Run `git diff -- AGENTS.md AGENTS.history.md` so the user can review and revert. If the files are untracked, use `git add -N` first so the diff renders, then run `git reset` (mixed) afterward to unstage them. Summarize what changed in one or two lines.
