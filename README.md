@@ -158,6 +158,20 @@ Guards (max iterations, stuck detection, noisy reviewer) are re-implemented in-s
 - `--dry-run` plans only and exits without applying or committing.
 - Each adapter call has a configurable `timeoutMs` (enforced via `AbortSignal.timeout`) — no subprocess SIGTERM.
 
+## Shareable skills
+
+`skills/` contains opencode skills that ship with this repo. Install one by symlinking it into your global skills directory:
+
+```bash
+ln -s "$PWD/skills/agents-feedback" ~/.config/opencode/skills/agents-feedback
+```
+
+Or copy the folder if you'd rather not depend on the repo's location. Restart opencode after installing.
+
+| Skill | Purpose |
+|---|---|
+| `agents-feedback` | Fold feedback about harness/agent behavior into a project's `AGENTS.md` (with `AGENTS.history.md` changelog) so instructions self-iterate. |
+
 ## Build
 
 ```bash
