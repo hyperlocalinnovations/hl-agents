@@ -110,7 +110,9 @@ try:
 except Exception:
     data = {}
 for path, e in data.get("worktrees", {}).items():
-    r = e.get("runner") or {}
+    r = e.get("runner")
+    if not isinstance(r, dict):
+        continue
     if r.get("port") == int(port) and e.get("branch") != branch and e.get("status") != "done":
         print(path)
         sys.exit(0)

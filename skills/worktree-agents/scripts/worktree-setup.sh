@@ -15,7 +15,8 @@ set -euo pipefail
 #
 #   <branch>  branch to check out / create (created from current HEAD if absent)
 #   [path]    target directory; defaults to ../<branch-slug>
-#   --source  worktree to copy AGENTS.md/.opencode from (default: this worktree)
+#   --source  worktree to copy AGENTS.md/.opencode from (default: the main
+#             worktree, so propagation works from any worktree)
 #   --force-copy  overwrite existing AGENTS.md/.opencode files even if newer
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -220,7 +220,9 @@ if not rows:
     print("(no registered worktrees)")
     sys.exit(0)
 for path, e in rows.items():
-    runner = e.get("runner") or {}
+    runner = e.get("runner")
+    if not isinstance(runner, dict):
+        runner = {}
     port = runner.get("port", "-")
     cmd = runner.get("command", "-")
     print(f"{e.get('status','?'):<10} {e.get('branch','?'):<30} port={port:<6} {cmd}")
