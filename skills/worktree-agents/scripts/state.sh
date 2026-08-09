@@ -55,7 +55,7 @@ read_entry() {
     local fields=()
     for f in "$@"; do fields+=("$f"); done
     python3 - "$STATE_FILE" "$path" "${fields[@]}" <<'PY'
-import json, os, sys
+import json, sys
 try:
     with open(sys.argv[1]) as f:
         data = json.load(f)
