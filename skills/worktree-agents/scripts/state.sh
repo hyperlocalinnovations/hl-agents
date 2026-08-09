@@ -18,7 +18,6 @@ set -euo pipefail
 #   state.sh release <path>            mark status=done and clear runner (takes lock)
 #   state.sh prune                     drop entries whose worktree dir is gone
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCK_TIMEOUT_DEFAULT=30
 LOCK_MAX_AGE=300
 
@@ -236,7 +235,6 @@ PY
     shift
     [[ $# -ge 2 ]] || { echo "usage: state.sh set <path> k=v [k=v...]" >&2; exit 1; }
     path="$1"; shift
-    blob="{}"
     pairs=()
     for kv in "$@"; do
       IFS='=' read -r k v <<< "$kv"

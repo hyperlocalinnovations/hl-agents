@@ -46,7 +46,7 @@ current_branch() {
   git rev-parse --abbrev-ref HEAD
 }
 
-# branch name -> filesystem-safe slug: feat/foo-123 -> feat-foo-123
+# branch name -> filesystem-safe slug: feat/foo-123 -> feat_foo-123
 slug() {
   printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '_'
 }
