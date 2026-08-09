@@ -19,7 +19,7 @@ set -euo pipefail
 #
 # Env:
 #   HL_WORKTREES_PORT_MIN    default 5000
-#   HL_WORKTREES_PORT_MAX    default 500
+#   HL_WORKTREES_PORT_RANGE  default 500
 #   WORKTREES_STATE_DIR      override where coordination state lives
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,11 +31,12 @@ PORT_RANGE="${HL_WORKTREES_PORT_RANGE:-500}"
 PORTS_CONF="${HL_WORKTREES_PORTS_CONF:-}"
 
 # Coordination state file (shared with state.sh). Lives in the git common dir,
-# which every linked worktree shares.
+# which every linked worktree shares. WORKTREES_STATE_DIR is a directory (same
+# semantics as state.sh), not the file path.
 git_common_dir() {
   git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "${PWD%/*}/.git"
 }
-STATE_FILE="${WORKTREES_STATE_DIR:-$(git_common_dir)/worktrees/state.json}"
+STATE_FILE="${WORKTREES_STATE_DIR:-$(git_common_dir)/worktrees}/state.json"
 
 # ---------------------------------------------------------------------------
 # identity
@@ -59,14 +60,14 @@ project_port_override() {
   local line glob p
   # 1. state.json `ports` block (branch glob -> port)
   if p="$(python3 - "$STATE_FILE" "$branch" <<'PY'
-import json, sys
+import fnmatch, json, sys
 try:
     data = json.load(open(sys.argv[1]))
 except Exception:
     sys.exit(1)
 branch = sys.argv[2]
 for glob, port in (data.get("ports") or {}).items():
-    if branch == glob:
+    if fnmatch.fnmatch(branch, glob):
         print(port)
         sys.exit(0)
 sys.exit(1)
@@ -102,10 +103,10 @@ default_port() {
 port_in_use() {
   local port="$1" branch="$2" other
   if other="$(python3 - "$STATE_FILE" "$port" "$branch" <<'PY'
-import json, os, sys
-port, branch = sys.argv[1], sys.argv[2]
+import json, sys
+state_file, port, branch = sys.argv[1], sys.argv[2], sys.argv[3]
 try:
-    data = json.load(open(sys.argv[0]))
+    data = json.load(open(state_file))
 except Exception:
     data = {}
 for path, e in data.get("worktrees", {}).items():
@@ -196,23 +197,30 @@ PY
 
 BRANCH="$(current_branch)"
 SLUG="$(slug "$BRANCH")"
-PORT="$(resolve_port)"
 ROOT="${WORKTREES_WORKTREE_ROOT:-$PWD}"
+
+# PORT is resolved lazily: only commands that need it pay the cost (and only
+# they can fail on port exhaustion). `stop` never touches ports.
+PORT=""
 
 case "${1:-}" in
   env)
+    PORT="$(resolve_port)"
     printf 'export PORT=%s\nexport RUN_ID=%s\nexport RUNNER_BRANCH=%s\n' "$PORT" "$SLUG" "$BRANCH"
     ;;
   port)
-    printf '%s\n' "$PORT"
+    printf '%s\n' "$(resolve_port)"
     ;;
   command)
+    PORT="$(resolve_port)"
     build_command "$ROOT" "$PORT"
     ;;
   resolve)
+    PORT="$(resolve_port)"
     printf 'port=%s\ncommand=%s\n' "$PORT" "$(build_command "$ROOT" "$PORT")"
     ;;
   publish)
+    PORT="$(resolve_port)"
     shift
     path="${1:-}"; shift
     [[ -n "$path" ]] || { echo "usage: runner.sh publish <path> <cmd> [pid]" >&2; exit 1; }

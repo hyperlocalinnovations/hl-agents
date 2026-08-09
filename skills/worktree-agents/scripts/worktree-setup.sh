@@ -26,17 +26,22 @@ FORCE_COPY=0
 BRANCH=""
 PATH_ARG=""
 
+# Parse options anywhere (before or after positionals); positionals are
+# collected into BRANCH/PATH_ARG in order, and `--` ends option parsing.
+POSITIONALS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --source) SOURCE="$2"; shift 2 ;;
     --force-copy) FORCE_COPY=1; shift ;;
     --) shift; break ;;
-    *) break ;;
+    -*) echo "unknown option: $1" >&2; exit 1 ;;
+    *) POSITIONALS+=("$1"); shift ;;
   esac
 done
+POSITIONALS+=("$@")
 
-BRANCH="${1:-}"
-PATH_ARG="${2:-}"
+BRANCH="${POSITIONALS[0]:-}"
+PATH_ARG="${POSITIONALS[1]:-}"
 [[ -n "$BRANCH" ]] || { echo "usage: worktree-setup.sh <branch> [path] [--source <wt>] [--force-copy]" >&2; exit 1; }
 
 # ---------------------------------------------------------------------------

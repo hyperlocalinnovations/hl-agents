@@ -88,7 +88,7 @@ PY
 write_entry() {
   local path="$1" blob="$2"
   python3 - "$STATE_FILE" "$path" "$blob" <<'PY'
-import json, sys, time
+import json, os, sys, time
 state_file, path, blob = sys.argv[1], sys.argv[2], json.loads(sys.argv[3])
 data = {}
 try:
@@ -102,9 +102,11 @@ data.setdefault("worktrees", {})
 entry = data["worktrees"].setdefault(path, {})
 entry.update(blob)
 entry["updatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-with open(state_file, "w") as f:
+tmp = state_file + ".tmp"
+with open(tmp, "w") as f:
     json.dump(data, f, indent=2)
     f.write("\n")
+os.replace(tmp, state_file)
 PY
 }
 
@@ -130,8 +132,18 @@ _lock() {
 }
 
 _recover_stale_lock() {
-  [[ -f "$LOCK_DIR/owner" ]] || return 0
   local pid ts now
+  # A lock dir with no owner file means the process died between `mkdir` and
+  # writing the owner file. Treat it as stale once it's old enough that a
+  # live contender would have written its owner file (a few seconds).
+  if [[ ! -f "$LOCK_DIR/owner" ]]; then
+    if [[ -z "$(find "$LOCK_DIR" -maxdepth 0 -mmin +1 2>/dev/null)" ]]; then
+      return 0
+    fi
+    echo "state.sh: removing stale lock (no owner file)" >&2
+    rm -rf "$LOCK_DIR"
+    return 0
+  fi
   read -r pid ts < "$LOCK_DIR/owner" || return 0
   now=$(date +%s)
   if ! kill -0 "$pid" 2>/dev/null; then
@@ -152,31 +164,38 @@ _unlock() {
 # ---------------------------------------------------------------------------
 
 prune_stale() {
-  local key dir
-  for key in $(python3 - "$STATE_FILE" <<'PY'
-import json, sys
-try:
-    data = json.load(open(sys.argv[1]))
-    print(" ".join(data.get("worktrees", {}).keys()))
-except Exception:
-    pass
-PY
-  ); do
-    dir="$key"
+  # Slots in `starting` status are intent-not-yet-created worktrees (SKILL.md
+  # registers the slot before `git worktree add`), so never prune those.
+  local dir
+  while IFS= read -r -d '' dir; do
+    [[ -z "$dir" ]] && continue
     [[ -d "$dir" ]] || {
       _lock
       write_entry "$dir" '{"status": "gone", "task": "worktree directory removed"}'
       _unlock
       echo "state.sh: marked missing worktree gone: $dir" >&2
     }
-  done
+  done < <(python3 - "$STATE_FILE" <<'PY'
+import json, os, sys
+try:
+    data = json.load(open(sys.argv[1]))
+except Exception:
+    data = {}
+out = []
+for k, e in (data.get("worktrees") or {}).items():
+    if e.get("status") not in ("starting", "gone") and not os.path.isdir(k):
+        out.append(k)
+if out:
+    print("\0".join(out), end="\0")
+PY
+)
 }
 
 cmd="${1:-}"
 
 case "$cmd" in
   lock)
-    LOCK_TIMEOUT="${2:-$LOCK_TIMEOUT_DEFAULT}"
+    LOCK_TIMEOUT="${2:-${LOCK_TIMEOUT:-$LOCK_TIMEOUT_DEFAULT}}"
     _lock
     ;;
   unlock)

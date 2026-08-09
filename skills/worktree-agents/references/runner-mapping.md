@@ -12,7 +12,7 @@ Resolution order in `runner.sh port` / `runner.sh env`:
 1. **Project pin** — the `ports` block in `state.json` (see below), or
    `HL_WORKTREES_PORTS_CONF=/path/to/ports.conf`.
 2. **Default scheme** — `PORT_MIN + cksum(branch-slug) % PORT_RANGE`, i.e.
-   `5000 + cksum("feat-cool-thing") % 500` by default. Deterministic, so the
+   `5000 + cksum("feat_cool-thing") % 500` by default. Deterministic, so the
    same branch always gets the same port on every machine.
 3. **Collision bump** — if the candidate port is already claimed by another
    live worktree entry, or an OS process is listening on it, increment until a
@@ -95,7 +95,7 @@ The skill does not dictate which pattern — use what the project already does.
 
 ```text
 export PORT=5177          # resolved, collision-free
-export RUN_ID=feat-cool-thing   # branch slug: safe for file/queue names
+export RUN_ID=feat_cool-thing   # branch slug: safe for file/queue names
 export RUNNER_BRANCH=feat/cool-thing
 ```
 

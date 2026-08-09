@@ -21,8 +21,7 @@ e.g. an NFS/Syncthing dir, for cross-machine setups).
   cannot wedge the queue.
 - The state file itself is replaced atomically: a new blob is written to
   `state.json.tmp` then `mv`'d over `state.json`, so readers never observe a
-  half-written file.
-- All high-level commands (`set`, `heartbeat`, `release`) acquire the lock
+  half-written file.- All high-level commands (`set`, `heartbeat`, `release`) acquire the lock
   internally. Low-level `lock`/`unlock` exist for wrapping a compound
   read-modify-write.
 
@@ -89,6 +88,8 @@ state.sh set <path> k=v [k=v...]    # create/update entry; values that parse as
 state.sh heartbeat <path>           # bump updatedAt
 state.sh release <path>             # status=done, clear runner/progress
 state.sh prune                      # mark entries whose worktree dir vanished
+                                    # (skips `starting` slots — those are
+                                    # intent-not-yet-created worktrees)
 ```
 
 Every `set`/`heartbeat`/`release` is lock-serialized and atomic.
