@@ -24,7 +24,8 @@
       "@hl-agents/fix-adapters": ["./packages/fix-adapters/src/index.ts"],
       "@hl-agents/committer": ["./packages/committer/src/index.ts"],
       "@hl-agents/cli": ["./packages/cli/src/index.ts"],
-      "@hl-agents/opencode-agent": ["./packages/opencode-agent/src/index.ts"]
+      "@hl-agents/opencode-agent": ["./packages/opencode-agent/src/index.ts"],
+      "@hl-agents/opencode-sdk": ["./packages/opencode-sdk/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist"]

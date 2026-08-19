@@ -140,6 +140,25 @@ The agent will:
 
 Guards (max iterations, stuck detection, noisy reviewer) are re-implemented in-session in simplified form.
 
+## Usage (Pi)
+
+Install the Pi package from this repository, then restart Pi:
+
+```bash
+pi install git:github.com/hyperlocalinnovations/hl-agents
+```
+
+Run `/review-loop` to review branch changes against `main`, or select a scope explicitly:
+
+```text
+/review-loop branch main
+/review-loop staged
+/review-loop uncommitted
+/review-loop all
+```
+
+The loop reviews, fixes, and re-reviews up to five times without committing. Add `REVIEW_GUIDELINES.md` to the reviewed repository's Git root to provide project-specific review checks and rules.
+
 ## Adapters
 
 **Review** — `opencode-slash` (default, SDK-based, zero-config, scoped), `command` (generic command + parser), `eslint` (parses `--format=json`).
